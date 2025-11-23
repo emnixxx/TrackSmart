@@ -117,6 +117,49 @@ body {
     color: #fff;
 }
 
+.show-password 
+{
+    display: flex;
+    align-items: center;
+    gap: 8px; /* space between checkbox and text */
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    top: 2px;
+}
+
+/* Hide browser default checkbox */
+.show-password input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4b0082;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Checked style */
+.show-password input[type="checkbox"]:checked {
+  background: #4b0082;
+  border-color: #4b0082;
+}
+
+/* Checkmark icon */
+.show-password input[type="checkbox"]:checked::after {
+  content: "✔";
+  color: white;
+  font-size: 12px;
+  position: absolute;
+  top: 1px;
+  left: 3.5px;
+}
+/* Hover effect */
+.show-password input[type="checkbox"]:hover {
+  border-color: #6a0dad;
+}
+
 .logout {
     margin-top: 20px;
     color: #b00020;
