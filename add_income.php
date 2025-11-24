@@ -14,14 +14,13 @@ $note = "";
    FETCH BUDGET CATEGORIES (DYNAMIC)
 ========================================== */
 $categoryQuery = $conn->query("
-    SELECT DISTINCT category 
-    FROM budgets 
-    WHERE user_id = $user_id
+    SELECT * FROM categories
+    WHERE type='income'
 ");
 
 $budgetCategories = [];
 while ($row = $categoryQuery->fetch_assoc()) {
-    $budgetCategories[] = $row['category'];
+    $budgetCategories[] = [$row['id'], $row['name']];
 }
 
 /* ==========================================
@@ -30,17 +29,17 @@ while ($row = $categoryQuery->fetch_assoc()) {
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_income'])) {
 
     $amount = $_POST['amount'];
-    $category = $_POST['category'];
+    $category = $_POST['category_id'];
     $date = $_POST['date'];
     $description = $_POST['description'];
     $notes = $_POST['notes'] ?? "";
 
     $stmt = $conn->prepare("
-        INSERT INTO transactions (user_id, type, description, amount, category, date, notes)
+        INSERT INTO transactions (user_id, type, description, amount, category_id, date, notes)
         VALUES (?, 'income', ?, ?, ?, ?, ?)
     ");
 
-    $stmt->bind_param("isdsss", 
+    $stmt->bind_param("isdiss", 
         $user_id, $description, $amount, $category, $date, $notes
     );
 
@@ -58,17 +57,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_income'])) {
     $id = $_POST['id'];
     $date = $_POST['date'];
     $description = $_POST['description'];
-    $category = $_POST['category'];
+    $category = $_POST['category_id'];
     $amount = $_POST['amount'];
     $notes = $_POST['notes'];
 
     $stmt = $conn->prepare("
         UPDATE transactions 
-        SET date=?, description=?, category=?, amount=?, notes=?
+        SET date=?, description=?, category_id=?, amount=?, notes=?
         WHERE id=? AND user_id=? AND type='income'
     ");
 
-    $stmt->bind_param("sssdsii", 
+    $stmt->bind_param("ssidsii", 
         $date, $description, $category, $amount, $notes, $id, $user_id
     );
 
@@ -106,9 +105,9 @@ $monthTotal = $row['total'] ?? 0;
    RECENT INCOME LIST
 ========================================== */
 $recent = $conn->query("
-    SELECT * FROM transactions
-    WHERE user_id=$user_id AND type='income'
-    ORDER BY date DESC
+    SELECT t.*, c.name FROM transactions t, categories c
+    WHERE t.user_id=$user_id AND t.type='income' AND t.category_id=c.id
+    ORDER BY t.date DESC
 ");
 ?>
 <!doctype html>
@@ -155,7 +154,7 @@ $recent = $conn->query("
 
                     <div>
                         <strong><?= $r['description'] ?></strong><br>
-                        <small><?= $r['date'] ?> • <?= $r['category'] ?></small>
+                        <small><?= $r['date'] ?> • <?= $r['name'] ?></small>
                     </div>
 
                     <div class="income-amount">₱<?= number_format($r['amount'], 2) ?></div>
@@ -165,7 +164,7 @@ $recent = $conn->query("
                             '<?= $r['id'] ?>',
                             '<?= $r['date'] ?>',
                             '<?= htmlspecialchars($r['description']) ?>',
-                            '<?= htmlspecialchars($r['category']) ?>',
+                            '<?= htmlspecialchars($r['category_id']) ?>',
                             '<?= $r['amount'] ?>',
                             `<?= htmlspecialchars($r['notes']) ?>`
                         )">✏️</button>
@@ -200,12 +199,11 @@ $recent = $conn->query("
             <input type="text" name="description" class="input" required>
 
             <label>Category</label>
-            <select name="category" class="input" required>
+            <select name="category_id" class="input" required>
                 <option value="">Select category</option>
                 <?php foreach ($budgetCategories as $cat): ?>
-                    <option value="<?= $cat ?>"><?= $cat ?></option>
+                    <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
                 <?php endforeach; ?>
-                <option value="Other">Other</option>
             </select>
 
             <label>Amount</label>
@@ -242,9 +240,9 @@ $recent = $conn->query("
             <input type="text" name="description" id="edit_description" class="input" required>
 
             <label>Category</label>
-            <select name="category" id="edit_category" class="input" required>
+            <select name="category_id" id="edit_category" class="input" required>
                 <?php foreach ($budgetCategories as $cat): ?>
-                    <option value="<?= $cat ?>"><?= $cat ?></option>
+                    <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
                 <?php endforeach; ?>
                 <option value="Other">Other</option>
             </select>
