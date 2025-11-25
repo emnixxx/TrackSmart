@@ -6,7 +6,7 @@
     </div>
 </nav> -->
 <div class="sidebar">
-    <h2 class="app-title">TrackSmart</h2>
+    <h2 class="app-title"><img src="assets/images/logo.png" alt="Logo"></img> TrackSmart</h2>
 
     <a href="index.php" class="menu-item">Dashboard</a>
     <a href="add_income.php" class="menu-item">Add Income</a>

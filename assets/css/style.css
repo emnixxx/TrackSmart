@@ -99,6 +99,8 @@ body {
 .app-title {
     color: #4b0082;
     margin-bottom: 30px;
+    display: flex;
+    align-items: center;
 }
 
 .menu-item {
