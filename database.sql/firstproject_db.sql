@@ -33,7 +33,7 @@ CREATE TABLE todos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL, 
   task VARCHAR(255),
-  due_date DATE,
+  due_date DATE NULL,
   is_done TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
