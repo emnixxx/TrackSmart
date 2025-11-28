@@ -112,6 +112,8 @@ body {
     border-radius: 8px;
     transition: 0.2s;
     font-size: 15px;
+    display: flex;
+    align-items: center;
 }
 
 .menu-item:hover {
@@ -273,6 +275,8 @@ body {
 
 .card h3 {
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .purple { background: #4b0082; }
