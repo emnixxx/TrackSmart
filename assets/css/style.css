@@ -1031,3 +1031,26 @@ body {
     color: #e63946;
     font-weight: 600;
 }
+.overdue::after {
+    content: " ⚠️";
+    font-size: 14px;
+}.due-today {
+    color: #ff9500; /* orange */
+    font-weight: bold;
+}
+.due-today::after {
+    content: " ⏰";
+}
+.due-week {
+    color: #c2b419; /* yellow */
+    font-weight: bold;
+}
+.due-week::after {
+    content: " 📅";
+}
+.done-text-task {
+    color: #1a7312 !important; /* green */
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+

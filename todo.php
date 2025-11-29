@@ -36,7 +36,7 @@ $tasks = $stmt->get_result();
             </div>
 
         <!-- ADD TASK INPUTS -->
-        <form class="todo-input-card" form id="addForm">
+        <form class="todo-input-card" id="addForm">
             <input type="text" name="task" class="todo-input" placeholder="Add new task...">
             <input type="date"  name="due_date" class="todo-date">
             <button class="add-btn" id="addTaskBtn">+ Add Task</button>
@@ -55,34 +55,47 @@ $tasks = $stmt->get_result();
                     </tr>
                 </thead>
 
-                <tbody id="todoList">
-                    <?php while($row = $tasks->fetch_assoc()): ?>
+            <tbody id="todoList">
+            <?php while($row = $tasks->fetch_assoc()): ?>
 
-                    <tr data-id="<?= $row['id'] ?>">
+            <tr data-id="<?= $row['id'] ?>">
                 <td>
                     <input type="checkbox" class="todo-check" <?= $row['is_done'] ? 'checked' : '' ?>>
                 </td>
-
-                <td class="<?= $row['is_done'] ? 'done-text' : '' ?>">
-                    <?= htmlspecialchars($row['task']) ?>
-                </td>
-
+            <td class="<?= $row['is_done'] ? 'done-text-task' : '' ?>">
+                <?= htmlspecialchars($row['task']) ?>
+            </td>
+                
             <?php 
-            $isOverdue = (!empty($row['due_date']) && strtotime($row['due_date']) < strtotime('today') && !$row['is_done']);
+                $today = strtotime('today');
+                $dueDate = !empty($row['due_date']) ? strtotime($row['due_date']) : null;
+
+                $isOverdue = $dueDate && $dueDate < $today && !$row['is_done'];
+                $isToday = $dueDate && $dueDate == $today && !$row['is_done'];
+                $isThisWeek = $dueDate && $dueDate > $today && $dueDate <= strtotime('+7 days') && !$row['is_done'];
+                // $isOverdue = 
+                //     (!empty($row['due_date']) && 
+                //     strtotime($row['due_date']) < strtotime('today') && 
+                //     !$row['is_done']);
             ?>
-            <td class="<?= $isOverdue ? 'overdue' : '' ?>">
-                <?= !empty($row['due_date']) ? date("m/d/Y", strtotime($row['due_date'])) : "-" ?>
+
+            <td class="
+                <?= $isOverdue ? 'overdue' : '' ?>
+                <?= $isToday ? 'due-today' : '' ?>
+                <?= $isThisWeek ? 'due-week' : '' ?>
+            ">
+                <?= !empty($row['due_date']) ? 
+                date("m/d/Y", strtotime($row['due_date'])) : "-" ?>
             </td>
 
                 <td class="actions-col">
-                    <button class="todo-edit" data-id="<?= $row['id'] ?>">✏️</button>
+                    <button class="todo-edit" data-id="<?= $row['id'] ?>">✎ᝰ</button>
                     <button class="todo-delete" data-id="<?= $row['id'] ?>">🗑️</button>
                 </td>
-            </tr>
-<!--icon options: ✎ 🖊️🖊🗑️✎𓂃 𓂃🖊🖋-->
+            </tr>  <!--icon options: ✎ 🖊️🖊🗑️✎𓂃 𓂃🖊🖋✏️✒️✎ᝰ. ⌦-->
                     <?php endwhile; ?>
                     
-                </tbody>
+            </tbody>
             </table>
 
                 <div class="todo-footer">
@@ -142,19 +155,6 @@ $tasks = $stmt->get_result();
         completedCount.textContent = done + " completed";
         pendingCount.textContent = (checks.length - done) + " pending";
     }
-
-    document.addEventListener("click", (e) => {
-        // Delete
-        if (e.target.classList.contains("todo-delete")) {
-            e.target.closest("tr").remove();
-            updateCounts();
-        }
-
-        // Status check
-        if (e.target.classList.contains("todo-check")) {
-            updateCounts();
-        }
-    });
 </script>
 
 <script>
@@ -176,18 +176,6 @@ document.getElementById("addForm").addEventListener("submit", function(e){
     fetch("add_task.php", { method: "POST", body: formData })
     .then(() => location.reload());
 });
-
-// // DELETE
-// document.addEventListener("click", function(e){
-//     if (e.target.classList.contains("todo-delete")) {
-//         let id = e.target.dataset.id;
-
-//         fetch("delete_task.php", {
-//             method: "POST",
-//             body: new URLSearchParams({id})
-//         }).then(() => location.reload());
-//     }
-// });
 
 // TOGGLE DONE
 document.addEventListener("change", function(e){
@@ -267,7 +255,5 @@ document.getElementById("confirmDelete").onclick = function() {
     });
 };
 </script>
-
-
 </body>
 </html>
