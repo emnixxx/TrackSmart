@@ -36,9 +36,25 @@ $tasks = $stmt->get_result();
             </div>
 
         <!-- ADD TASK INPUTS -->
-        <form class="todo-input-card" id="addForm">
+        <!-- <form class="todo-input-card" id="addForm">
             <input type="text" name="task" class="todo-input" placeholder="Add new task...">
             <input type="date"  name="due_date" class="todo-date">
+            <button class="add-btn" id="addTaskBtn">+ Add Task</button>
+        </form> -->
+
+        <form class="todo-input-card" id="addForm" method="POST">
+            <input type="text" name="task" class="todo-input" placeholder="Add new task..." required>
+        
+            <select name="category" class="todo-category">
+                <option value="">No Category</option>
+                <option value="Work">Work</option>
+                <option value="School">School</option>
+                <option value="Personal">Personal</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+        
+            <input type="date" name="due_date" class="todo-date">
+        
             <button class="add-btn" id="addTaskBtn">+ Add Task</button>
         </form>
 
