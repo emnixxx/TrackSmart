@@ -1199,3 +1199,28 @@ body {
     transform: scale(1.2);
 }
 
+/* -------------------------------
+   DASHBOARD
+--------------------------------*/
+
+.dashboard-icon {
+    padding-right: 10px;
+}
+
+/* -------------------------------
+   SIDEBAR
+--------------------------------*/
+
+.sidebar-icon-svg {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.sidebar-icon-svg path{
+    stroke: #364153; 
+}
+
+.menu-item:hover .sidebar-icon-svg path {
+    stroke: #fff;
+}
