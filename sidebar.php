@@ -11,7 +11,7 @@
     <a href="index.php" class="menu-item">Dashboard</a>
     <a href="add_income.php" class="menu-item">Add Income</a>
     <a href="transactions.php" class="menu-item">Transactions</a>
-    <a href="expenses.php" class="menu-item">Budgets</a>
+    <a href="budget.php" class="menu-item">Budgets</a>
     <a href="reports.php" class="menu-item">Reports</a>
     <a href="todo.php" class="menu-item">To-Do List</a>
     <a href="profile.php" class="menu-item">Settings</a>
