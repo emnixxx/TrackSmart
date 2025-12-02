@@ -61,7 +61,7 @@ if (isset($_GET['delete'])) {
 }
 
 /* ========================================================
-   SAVE NEW TRANSACTION
+   SAVE NEW TRANSACTION  (FIXED)
 ======================================================== */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) {
 
@@ -80,15 +80,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) 
          VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
     $stmt->bind_param("issdsss", $user_id, $type, $description, $amount, $category, $date, $notes);
-    $stmt->execute();
-    $stmt->close();
 
+    if (!$stmt->execute()) {
+        echo "<p style='color:red;'>Insert Error: " . $stmt->error . "</p>";
+    }
+
+    $stmt->close();
     header("Location: transactions.php?added=1");
     exit;
 }
 
-/* FETCH ALL TRANSACTIONS */
+/* ========================================================
+   FETCH ALL TRANSACTIONS (WITH ERROR CHECK)
+======================================================== */
 $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY date DESC");
+
+if (!$transactions) {
+    echo "<p style='color:red;'>SQL Error: " . $conn->error . "</p>";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -105,79 +114,12 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
     padding: 12px;
     vertical-align: middle;
 }
-
-/* Amount centered */
-.amount {
-    text-align: center;
-    vertical-align: middle;
-    font-weight: 600;
-}
-
+.amount { text-align:center; font-weight:600; }
 .amount.income { color: green; }
 .amount.expense { color: red; }
-
-/* DELETE button */
-.delete-btn {
-    background: #ff4d4d;
-    color: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-}
-
-.delete-btn:hover {
-    background: #cc0000;
-}
-
-/* Top bar */
-.transaction-topbar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.search-input {
-    flex: 1 !important;
-    width: 100%;
-}
-
-.right-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.add-btn {
-    background: #4b0082;
-    color: white;
-    padding: 10px 14px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.import-btn {
-    background: #ddd;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* Type buttons */
-.type-btn { 
-    flex:1; padding:10px; border:none; border-radius:8px; 
-    cursor:pointer; font-weight:600; color:#000; 
-    background:#fff; transition:0.2s; 
-}
-
+.delete-btn { background:#ff4d4d; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+.delete-btn:hover { background:#cc0000; }
 .type-btn.active { background:#4b0082; color:#fff; }
-
-.type-switch { display:flex; gap:5px; margin-bottom:10px; }
 </style>
 </head>
 
@@ -187,15 +129,8 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
 <div class="main-content">
   <div class="transactions-wrapper">
 
-    <div class="transactions-header">
-      <div class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('active')">☰</div>
-      <h1>TrackSmart</h1>
-      <p class="subtext">Welcome back!</p>
-    </div>
-
-    <!-- SEARCH + ADD + IMPORT -->
+    <!-- SEARCH BAR + BUTTONS -->
     <div class="transaction-topbar">
-
       <form method="GET" style="flex: 1;">
         <input type="text" name="search" 
                placeholder="🔍 Search transactions…" 
@@ -206,7 +141,6 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
       <div class="right-buttons">
         <button class="add-btn" onclick="openModal()">Add Transaction</button>
         <button class="import-btn" onclick="window.location='transaction_pdf.php'">📥</button>
-
       </div>
     </div>
 
@@ -249,7 +183,7 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
   </div>
 </div>
 
-<!-- MODAL ADD -->
+<!-- ADD TRANSACTION MODAL -->
 <div id="transactionModal" class="modal-overlay" style="display:none;">
   <div class="modal-box">
     <div class="modal-header">
@@ -292,9 +226,10 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
       <label>Notes</label>
       <textarea name="notes" rows="2" class="input"></textarea>
 
+      <!-- FIXED BUTTON -->
       <div class="modal-actions">
         <button type="button" onclick="closeModal()" class="cancel-btn">Cancel</button>
-        <button type="submit" class="save-btn">Save Transaction</button>
+        <button type="submit" name="save_transaction" class="save-btn">Save Transaction</button>
       </div>
 
     </form>
@@ -304,7 +239,6 @@ $transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY d
 <script>
 function openModal() {
     document.getElementById("transactionModal").style.display = "flex";
-    setType('expense', new Event('click'));
 }
 
 function closeModal() {
@@ -317,13 +251,10 @@ function deleteTransaction(id) {
     }
 }
 
-function setType(type, event) {
-    if(event) event.preventDefault();
+function setType(type) {
     document.getElementById("typeField").value = type;
-    document.getElementById("expenseBtn").classList.remove('active');
-    document.getElementById("incomeBtn").classList.remove('active');
-    if(type==='expense') document.getElementById("expenseBtn").classList.add('active');
-    else document.getElementById("incomeBtn").classList.add('active');
+    document.getElementById("expenseBtn").classList.toggle('active', type === 'expense');
+    document.getElementById("incomeBtn").classList.toggle('active', type === 'income');
 }
 </script>
 
