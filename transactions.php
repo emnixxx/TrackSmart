@@ -21,7 +21,7 @@ if (isset($_GET['delete'])) {
 }
 
 /* ========================================================
-   SAVE NEW TRANSACTION
+   SAVE NEW TRANSACTION  (FIXED)
 ======================================================== */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) {
 
@@ -43,13 +43,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) 
     $stmt->execute();
     $stmt->close();
 
+    if (!$stmt->execute()) {
+        echo "<p style='color:red;'>Insert Error: " . $stmt->error . "</p>";
+    }
+
+    $stmt->close();
     header("Location: transactions.php?added=1");
     exit;
 }
 
 /* ========================================================
+$transactions = $conn->query("SELECT * FROM transactions WHERE $where ORDER BY date DESC");
+
+if (!$transactions) {
+    echo "<p style='color:red;'>SQL Error: " . $conn->error . "</p>";
+}
    UPDATE TRANSACTION
-======================================================== */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) {
 
     $id = $_POST['id'];
@@ -81,7 +90,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) 
 
 /* ========================================================
    FETCH TRANSACTIONS
-======================================================== */
 $transactions = $conn->query("
     SELECT * FROM transactions 
     WHERE user_id = $user_id
