@@ -1,5 +1,6 @@
 <?php
 session_start();
+require 'db_connect.php';
 require $_SERVER['DOCUMENT_ROOT'].'/TrackSmart/db_connect.php';
 
 if (!isset($_SESSION['user_id'])) {
