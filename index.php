@@ -132,6 +132,7 @@ $weekTasks = $conn->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard • TrackSmart</title>
     <link rel="stylesheet" href="assets/css/style.css?v=14">
+    <link rel="stylesheet" href="assets/css/index.css?v=14">
 
     <!-- Chart.js (for bar chart) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
