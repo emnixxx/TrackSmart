@@ -1,7 +1,9 @@
+-- Create database
 CREATE DATABASE IF NOT EXISTS firstproject_db;
 USE firstproject_db;
 
-CREATE TABLE users (
+-- USERS TABLE
+CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(100) NOT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
@@ -11,25 +13,31 @@ CREATE TABLE users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE categories (
+-- CATEGORIES TABLE
+CREATE TABLE IF NOT EXISTS categories (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   type ENUM('income','expense') NOT NULL
 );
 
-CREATE TABLE transactions (
+-- TRANSACTIONS TABLE
+CREATE TABLE IF NOT EXISTS transactions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  category_id INT,
+  category_id INT DEFAULT NULL,
+  category VARCHAR(100) DEFAULT 'Other',
   description VARCHAR(255),
   amount DECIMAL(10,2),
   type ENUM('income','expense'),
   date DATE,
-  notes VARCHAR(255) DEFAULT '',
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
-CREATE TABLE todos (
+-- TODOS TABLE
+CREATE TABLE IF NOT EXISTS todos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL, 
   task VARCHAR(255),
@@ -39,15 +47,3 @@ CREATE TABLE todos (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
-INSERT INTO categories (name, type)
-VALUES
-    ('Food and Dining', 'expense'),
-    ('Transportation', 'expense'),
-    ('Shopping', 'expense'),
-    ('Entertainment', 'expense'),
-    ('Utilities', 'expense'),
-    ('Healthcare', 'expense'),
-    ('Salary', 'income'),
-    ('Business', 'income'),
-    ('Gift', 'income');
