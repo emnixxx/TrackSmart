@@ -44,7 +44,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <title>Login • FirstProject</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="assets/css/style.css?v=14">
+  
+  <script>
+        function togglePasswordVisibility() {
+            var passwordInput = document.getElementById("myPasswordInput");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+            } else {
+                passwordInput.type = "password";
+            }
+        }
+    </script>
 </head>
+
 <body class="auth-page">
   <form class="auth-card" method="post" autocomplete="off">
     <h2>Login</h2>
@@ -54,11 +66,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <input type="email" name="email" required>
 
     <label>Password</label>
-    <input type="password" name="password" required>
+    <input type="password" name="password" id="myPasswordInput" required>
 
+    <div class="show-password">
+    <input type="checkbox" id="show-password" onclick="togglePasswordVisibility()">
+    <label for="showpass">Show Password</label>
+    </div>
+    
+    <!-- <label class="show-password">
+    <input type="checkbox" id="show-password" onclick="togglePasswordVisibility()"> 
+    <span>Show Password</span>
+    </label> -->
+    
     <button type="submit">Login</button>
 
     <div class="small">No account? <a href="register.php">Register</a></div>
+    <div class="small">Forgot Password? <a href="forgot_password.php">Click Here</a></div>
   </form>
 </body>
 </html>
