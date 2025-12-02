@@ -255,7 +255,7 @@ $transactions = $conn->query("
             <label>Category</label>
             <select id="edit_category" name="category" class="input" required>
                 <option>Food</option>
-                <option>Utilities</option>
+                <option>Utilities</option>                                
                 <option>Transportation</option>
                 <option>Entertainment</option>
                 <option>Shopping</option>
