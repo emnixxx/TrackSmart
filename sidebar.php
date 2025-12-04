@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="assets/css/index.css?v=14">
+<link rel="stylesheet" href="assets/css/sidebar.css?v=14">
 
 <div class="sidebar">
     <h2 class="app-title"><img src="assets/images/logo.png" alt="Logo"></img> TrackSmart</h2>
