@@ -61,10 +61,10 @@ $stmt->close();
 /* FETCH SPENT TOTAL PER CATEGORY */
 $spent_map = [];
 $stmt = $conn->prepare("
-    SELECT category, SUM(amount) AS spent
+    SELECT category_id, SUM(amount) AS spent
     FROM transactions
     WHERE user_id=? AND type='expense'
-    GROUP BY category
+    GROUP BY category_id
 ");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
