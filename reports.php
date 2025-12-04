@@ -38,10 +38,10 @@ $catLabels = [];
 $catTotals = [];
 
 $catResult = $conn->query("
-    SELECT category, SUM(amount) AS total
+    SELECT category_id, SUM(amount) AS total
     FROM transactions
     WHERE user_id = $user_id AND type = 'expense'
-    GROUP BY category
+    GROUP BY category_id
     ORDER BY total DESC
 ");
 
