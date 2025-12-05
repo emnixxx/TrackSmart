@@ -1,0 +1,42 @@
+/* -------------------------------
+   DASHBOARD
+--------------------------------*/
+
+.dashboard-icon {
+    padding-right: 10px;
+}
+
+/* -------------------------------
+   NOTIF BELL
+--------------------------------*/
+.notif-bell {
+    padding: 12px;
+    margin-bottom: 8px;
+    bottom: 10px;
+    left: 170px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    position: relative;
+    
+}
+
+
+.notif-bell-icon-svg {
+    position: absolute;
+    bottom: 14px;
+    right: 170px;;
+}
+
+.notif-bell-icon-svg path {
+    stroke: #364153;
+    fill: #fff;
+}
+
+.notif-bell:hover .notif-bell-icon-svg path {
+    stroke: #fff;
+    fill: #364153;
+}
