@@ -20,7 +20,7 @@ $categoryQuery = $conn->query("
 
 $budgetCategories = [];
 while ($row = $categoryQuery->fetch_assoc()) {
-    $budgetCategories[] = [$row['id'], $row['name']];
+    $budgetCategories[] = [$row['id'], $row['category_name']];
 }
 
 /* ==========================================
@@ -105,7 +105,7 @@ $monthTotal = $row['total'] ?? 0;
    RECENT INCOME LIST
 ========================================== */
 $recent = $conn->query("
-    SELECT t.*, c.name FROM transactions t, categories c
+    SELECT t.*, c.category_name FROM transactions t, categories c
     WHERE t.user_id=$user_id AND t.type='income' AND t.category_id=c.id
     ORDER BY t.date DESC
 ");
@@ -154,7 +154,7 @@ $recent = $conn->query("
 
                     <div>
                         <strong><?= $r['description'] ?></strong><br>
-                        <small><?= $r['date'] ?> • <?= $r['name'] ?></small>
+                        <small><?= $r['date'] ?> • <?= $r['category_name'] ?></small>
                     </div>
 
                     <div class="income-amount">₱<?= number_format($r['amount'], 2) ?></div>

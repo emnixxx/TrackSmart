@@ -28,16 +28,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) 
     $type = $_POST['type'];
     $description = $_POST['description'];
     $amount = $_POST['amount'];
-    $category = $_POST['category'];
+    $income_category_id = $_POST['income_category_id'];
+    $expense_category_id = $_POST['expense_category_id'];
     $date = $_POST['date'];
     $notes = $_POST['notes'] ?? "";
 
+    $category_id = $type === "expense" ? $expense_category_id : $income_category_id;
+
     $stmt = $conn->prepare("
-        INSERT INTO transactions (user_id, type, description, amount, category, date, notes)
+        INSERT INTO transactions (user_id, type, description, amount, category_id, date, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
-    $stmt->bind_param("issdsss",
-        $user_id, $type, $description, $amount, $category, $date, $notes
+    $stmt->bind_param("issdiss",
+        $user_id, $type, $description, $amount, $category_id, $date, $notes
     );
 
     $stmt->execute();
@@ -57,19 +60,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) 
     $type = $_POST['type'];
     $description = $_POST['description'];
     $amount = $_POST['amount'];
-    $category = $_POST['category'];
+    $income_category_id = $_POST['income_category_id'];
+    $expense_category_id = $_POST['expense_category_id'];
     $notes = $_POST['notes'];
+
+    $category_id = $type === "expense" ? $expense_category_id : $income_category_id;
 
     $stmt = $conn->prepare("
         UPDATE transactions 
-        SET date=?, type=?, description=?, amount=?, category=?, notes=? 
+        SET date=?, type=?, description=?, amount=?, category_id=?, notes=? 
         WHERE id=? AND user_id=?
     ");
 
-    // ✔ FIXED: no spaces inside type string
-    // ✔ FIXED: correct number of parameters
-    $stmt->bind_param("sssdssii",
-        $date, $type, $description, $amount, $category, $notes, $id, $user_id
+    $stmt->bind_param("sssdisii",
+        $date, $type, $description, $amount, $category_id, $notes, $id, $user_id
     );
 
     $stmt->execute();
@@ -83,10 +87,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) 
    FETCH TRANSACTIONS
 ======================================================== */
 $transactions = $conn->query("
-    SELECT * FROM transactions 
-    WHERE user_id = $user_id
+    SELECT t.*, c.category_name, c.hex_color FROM transactions t, categories c
+    WHERE user_id = $user_id AND t.category_id = c.id
     ORDER BY date DESC
 ");
+
+/* ==========================================
+   FETCH CATEGORIES
+========================================== */
+$incomeCategoryQuery = $conn->query("
+    SELECT * FROM categories
+    WHERE type='income'
+");
+
+$incomeCategories = [];
+while ($row = $incomeCategoryQuery->fetch_assoc()) {
+    $incomeCategories[] = [$row['id'], $row['category_name']];
+}
+
+$expenseCategoryQuery = $conn->query("
+    SELECT * FROM categories
+    WHERE type='expense'
+");
+
+$expenseCategories = [];
+while ($row = $expenseCategoryQuery->fetch_assoc()) {
+    $expenseCategories[] = [$row['id'], $row['category_name']];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,9 +138,8 @@ $transactions = $conn->query("
     </div>
 
     <div class="transaction-topbar">
-        <input type="text" placeholder="🔍 Search transactions..." class="search-input">
+        <!-- <input type="text" placeholder="🔍 Search transactions..." class="search-input"> -->
         <button class="add-btn" onclick="openModal()">+ Add Transaction</button>
-        <button class="export-btn">⤓ Export</button>
     </div>
 
     <div class="transaction-card">
@@ -139,7 +165,7 @@ $transactions = $conn->query("
                 <tr>
                     <td><?= $t['date'] ?></td>
                     <td><?= $t['description'] ?></td>
-                    <td><span class="tag"><?= $t['category'] ?></span></td>
+                    <td><span style="background: <?= $t['hex_color'] ?>;" class="tag"><?= $t['category_name'] ?></span></td>
 
                     <td class="<?= $t['type'] === 'income' ? 'amount income' : 'amount expense' ?>">
                         ₱<?= number_format($t['amount'], 2) ?>
@@ -152,7 +178,7 @@ $transactions = $conn->query("
                                 '<?= $t['date'] ?>',
                                 '<?= $t['type'] ?>',
                                 '<?= htmlspecialchars($t['description']) ?>',
-                                '<?= htmlspecialchars($t['category']) ?>',
+                                '<?= htmlspecialchars($t['category_id']) ?>',
                                 '<?= $t['amount'] ?>',
                                 `<?= htmlspecialchars($t['notes']) ?>`
                             )">✏️</button>
@@ -187,6 +213,7 @@ $transactions = $conn->query("
 
             <label>Date</label>
             <input type="date" name="date" class="input" required>
+
             <label>Type</label>
             <div class="type-switch">
                 <button type="button" class="type-btn active" id="expenseBtn" onclick="setType('expense')">Expense</button>
@@ -197,19 +224,23 @@ $transactions = $conn->query("
             <label>Description</label>
             <input type="text" name="description" class="input" required>
 
-            <label>Category</label>
-            <select name="category" class="input" required>
-                <option value="">Select category</option>
-                <option>Food</option>
-                <option>Utilities</option>
-                <option>Transportation</option>
-                <option>Entertainment</option>
-                <option>Shopping</option>
-                <option>Salary</option>
-                <option>Freelance</option>
-                <option>Business</option>
-                <option>Other</option>
-            </select>
+            <div id="expenseDropdown" class="dropdown-container">
+                <label>Category</label>
+                <select name="expense_category_id" class="input" required>
+                    <?php foreach ($expenseCategories as $cat): ?>
+                        <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div id="incomeDropdown" class="dropdown-container">
+                <label>Category</label>
+                <select name="income_category_id" class="input" required>
+                    <?php foreach ($incomeCategories as $cat): ?>
+                        <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <label>Amount</label>
             <input type="number" name="amount" step="0.01" class="input" required>
@@ -241,28 +272,41 @@ $transactions = $conn->query("
 
             <label>Date</label>
             <input type="date" id="edit_date" name="date" class="input" required>
-
+<!-- 
             <label>Type</label>
             <select id="edit_type" name="type" class="input">
                 <option value="expense">Expense</option>
                 <option value="income">Income</option>
-            </select>
+            </select> -->
+
+            <label>Type</label>
+            <div class="type-switch">
+                <button type="button" class="type-btn active" id="edit_expenseBtn" onclick="editSetType('expense')">Expense</button>
+                <button type="button" class="type-btn" id="edit_incomeBtn" onclick="editSetType('income')">Income</button>
+            </div>
+            <input type="hidden" name="type" id="edit_typeField" value="expense">
 
             <label>Description</label>
             <input type="text" id="edit_description" name="description" class="input" required>
 
-            <label>Category</label>
-            <select id="edit_category" name="category" class="input" required>
-                <option>Food</option>
-                <option>Utilities</option>                                
-                <option>Transportation</option>
-                <option>Entertainment</option>
-                <option>Shopping</option>
-                <option>Salary</option>
-                <option>Freelance</option>
-                <option>Business</option>
-                <option>Other</option>
-            </select>
+            <div id="edit_expenseDropdown" class="dropdown-container">
+                <label>Category</label>
+                <select id="edit_expense_category_id" name="expense_category_id" class="input" required>
+                    <?php foreach ($expenseCategories as $cat): ?>
+                        <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div id="edit_incomeDropdown" class="dropdown-container">
+                <label>Category</label>
+                <select 
+                id="edit_income_category_id" name="income_category_id" class="input" required>
+                    <?php foreach ($incomeCategories as $cat): ?>
+                        <option value="<?= $cat[0] ?>"><?= $cat[1] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <label>Amount</label>
             <input type="number" id="edit_amount" name="amount" step="0.01" class="input" required>
@@ -288,12 +332,24 @@ function closeModal() {
     document.getElementById("transactionModal").style.display = "none";
 }
 
-function openEditModal(id, date, type, desc, category, amount, notes) {
+function openEditModal(id, date, type, desc, category_id, amount, notes) {
     document.getElementById("edit_id").value = id;
     document.getElementById("edit_date").value = date;
-    document.getElementById("edit_type").value = type;
+    // document.getElementById("edit_type").value = type;
     document.getElementById("edit_description").value = desc;
-    document.getElementById("edit_category").value = category;
+    if (type === "expense") {
+        document.getElementById("edit_expense_category_id").value = category_id
+        edit_incomeBtn.classList.remove("active");
+        edit_expenseBtn.classList.add("active");
+        document.getElementById("edit_expenseDropdown").style.display = "";
+        document.getElementById("edit_incomeDropdown").style.display = "none";
+    } else {
+        document.getElementById("edit_income_category_id").value = category_id
+        edit_expenseBtn.classList.remove("active");
+        edit_incomeBtn.classList.add("active");
+        document.getElementById("edit_expenseDropdown").style.display = "none";
+        document.getElementById("edit_incomeDropdown").style.display = "";
+    }
     document.getElementById("edit_amount").value = amount;
     document.getElementById("edit_notes").value = notes;
     
@@ -315,8 +371,36 @@ function setType(type) {
     expenseBtn.classList.remove("active");
     incomeBtn.classList.remove("active");
 
-    if (type === "expense") expenseBtn.classList.add("active");
-    else incomeBtn.classList.add("active");
+    if (type === "expense") {
+        expenseBtn.classList.add("active");
+        document.getElementById("expenseDropdown").style.display = "";
+        document.getElementById("incomeDropdown").style.display = "none";
+    }
+    else {
+        incomeBtn.classList.add("active");
+        document.getElementById("expenseDropdown").style.display = "none";
+        document.getElementById("incomeDropdown").style.display = "";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', setType("expense"));
+
+function editSetType(type) {
+    document.getElementById("edit_typeField").value = type;
+
+    edit_expenseBtn.classList.remove("active");
+    edit_incomeBtn.classList.remove("active");
+
+    if (type === "expense") {
+        edit_expenseBtn.classList.add("active");
+        document.getElementById("edit_expenseDropdown").style.display = "";
+        document.getElementById("edit_incomeDropdown").style.display = "none";
+    }
+    else {
+        edit_incomeBtn.classList.add("active");
+        document.getElementById("edit_expenseDropdown").style.display = "none";
+        document.getElementById("edit_incomeDropdown").style.display = "";
+    }
 }
 </script>
 
