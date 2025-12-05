@@ -1,7 +1,7 @@
 <?php
 session_start();
 require 'db_connect.php';
-require $_SERVER['DOCUMENT_ROOT'].'/TrackSmart/db_connect.php';
+// require $_SERVER['DOCUMENT_ROOT'].'/TrackSmart/db_connect.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: /TrackSmart/login.php");
@@ -92,9 +92,10 @@ $total_remaining = $total_budget - $total_spent;
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Budgets • TrackSmart</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budgets • TrackSmart</title>
-<link rel="stylesheet" href="/TrackSmart/assets/css/style.css">
+<link rel="stylesheet" href="assets/css/style.css?v=30">
 
 </head>
 <body>

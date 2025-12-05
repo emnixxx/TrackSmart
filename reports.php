@@ -38,18 +38,35 @@ $catLabels = [];
 $catTotals = [];
 
 $catResult = $conn->query("
-    SELECT category_id, SUM(amount) AS total
-    FROM transactions
-    WHERE user_id = $user_id AND type = 'expense'
-    GROUP BY category_id
+    SELECT 
+        c.category_name AS category,
+        SUM(t.amount) AS total
+    FROM transactions t
+    JOIN categories c ON t.category_id = c.id
+    WHERE t.user_id = $user_id AND t.type = 'expense'
+    GROUP BY c.category_name
     ORDER BY total DESC
 ");
 
 while ($row = $catResult->fetch_assoc()) {
-    $label = $row['category'] ?: 'Uncategorized';
-    $catLabels[] = $label;
+    $catLabels[] = $row['category'];
     $catTotals[] = (float) $row['total'];
 }
+
+
+// $catResult = $conn->query("
+//     SELECT category_id, SUM(amount) AS total
+//     FROM transactions
+//     WHERE user_id = $user_id AND type = 'expense'
+//     GROUP BY category_id
+//     ORDER BY total DESC
+// ");
+
+// while ($row = $catResult->fetch_assoc()) {
+//     $label = $row['category'] ?: 'Uncategorized';
+//     $catLabels[] = $label;
+//     $catTotals[] = (float) $row['total'];
+// }
 
 $totalExpenseForPercent = array_sum($catTotals);
 
