@@ -13,7 +13,7 @@ $end_date   = $_GET['end_date']   ?? date('Y-m-t');
 $safe_start_date = $conn->real_escape_string($start_date);
 $safe_end_date   = $conn->real_escape_string($end_date);
 
-$file_name = "financial_report.csv";
+$file_name = "financial_report_" . $start_date . "_to_" . $end_date . ".csv";
 
 header('Content-Type: text/csv');
 header('Content-Disposition: attachment; filename="' . $file_name . '"');

@@ -80,11 +80,11 @@ while ($row = $catResult->fetch_assoc()) {
 }
 
 // =========================
-// MONTHLY INCOME vs EXPENSE (Current Month)
+// INCOME vs EXPENSE
 // =========================
 $incomeSeries = 0;
 $expenseSeries = 0;
-$monthResult = $conn->query("
+$barResult = $conn->query("
     SELECT 
         SUM(CASE WHEN type = 'income'  THEN amount ELSE 0 END) AS income_total,
         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense_total
@@ -93,13 +93,13 @@ $monthResult = $conn->query("
       AND $date_filter
 ");
 
-if ($row = $monthResult->fetch_assoc()) {
+if ($row = $barResult->fetch_assoc()) {
     $incomeSeries  = (float) $row['income_total']  ?? 0;
     $expenseSeries = (float) $row['expense_total'] ?? 0;
 }
 
 $label = date('M d', strtotime($start_date)) . ' - ' . date('M d', strtotime($end_date));
-$monthLabel = [$label];
+$dateLabel = [$label];
 $incomeData = [$incomeSeries];
 $expenseData = [$expenseSeries];
 
@@ -120,7 +120,7 @@ $dataResult = $conn->query("
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Monthly Reports • TrackSmart</title>
+    <title>Reports • TrackSmart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/css/style.css?v=30">
     <link rel="stylesheet" href="assets/css/reports.css?v=30">
@@ -236,7 +236,7 @@ $dataResult = $conn->query("
 // -------------------------
 const pieLabels   = <?= json_encode($catLabels) ?>;
 const pieData     = <?= json_encode($catTotals) ?>;
-const monthLabel = <?= json_encode($monthLabel) ?>;
+const dateLabel = <?= json_encode($dateLabel) ?>;
 const incomeData  = <?= json_encode($incomeData) ?>;
 const expenseData = <?= json_encode($expenseData) ?>;
 
@@ -265,7 +265,7 @@ const ctxBar = document.getElementById('incomeExpenseBar').getContext('2d');
 new Chart(ctxBar, {
     type: 'bar',
     data: {
-        labels: monthLabel,
+        labels: dateLabel,
         datasets: [
             {
                 label: 'Income',
@@ -313,7 +313,7 @@ function exportReportToPDF() {
             heightLeft -= pageHeight;
         }
 
-        doc.save('Monthly_Financial_Report_<?= date('Y-m') ?>.pdf');
+        doc.save('Financial_Report_<?= date('Y-m') ?>.pdf');
     }).catch(err => {
         console.error("PDF generation failed:", err);
         alert("Failed to generate PDF. Check console for details.");
