@@ -51,3 +51,17 @@
       </div>
   </div>
 </div>
+
+<script>
+function confirmLogout() {
+    document.getElementById("logoutModal").style.display = "flex";
+}
+
+function closeLogout() {
+    document.getElementById("logoutModal").style.display = "none";
+}
+
+function proceedLogout() {
+    window.location.href = "logout.php"; 
+}
+</script>
