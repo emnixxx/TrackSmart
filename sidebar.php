@@ -42,36 +42,26 @@
 
     </div>
 
-    <div id="logoutModal" class="logout-overlay">
-    <div class="logout-box">
-        <h3>Are you sure you want to logout?</h3>
-        <div class="logout-actions">
-            <button class="cancel-logout" onclick="closeLogout()">Cancel</button>
-            <button class="confirm-logout" onclick="proceedLogout()">Yes, Logout</button>
-        </div>
-    </div>
-    </div>
-    <script>
-const logoutModal = document.getElementById('logoutModal');
+<div id="logoutModal" class="logout-overlay">
+  <div class="logout-box">
+      <h3>Are you sure you want to logout?</h3>
+      <div class="logout-actions">
+          <button class="cancel-logout" onclick="closeLogout()">Cancel</button>
+          <button class="confirm-logout" onclick="proceedLogout()">Yes, Logout</button>
+      </div>
+  </div>
+</div>
 
+<script>
 function confirmLogout() {
-    logoutModal.style.display = 'flex';
+    document.getElementById("logoutModal").style.display = "flex";
 }
 
 function closeLogout() {
-    logoutModal.style.display = 'none';
+    document.getElementById("logoutModal").style.display = "none";
 }
 
 function proceedLogout() {
-    // Redirect to your logout PHP script
-    window.location.href = 'logout.php';
+    window.location.href = "logout.php"; 
 }
-
-// Optional: close modal when clicking outside
-window.addEventListener('click', function(e) {
-    if(e.target === logoutModal) {
-        closeLogout();
-    }
-});
 </script>
-

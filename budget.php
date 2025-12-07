@@ -1,10 +1,9 @@
 <?php
 session_start();
 require 'db_connect.php';
-// require $_SERVER['DOCUMENT_ROOT'].'/TrackSmart/db_connect.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /TrackSmart/login.php");
+    header("Location: login.php");
     exit;
 }
 $user_id = $_SESSION['user_id'];
@@ -30,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->execute();
     $stmt->close();
 
-    header("Location: /TrackSmart/budget.php?saved=1");
+    header("Location: budget.php?saved=1");
     exit;
 }
 
@@ -41,7 +40,7 @@ if (isset($_GET['delete'])) {
     $stmt->bind_param("ii", $del_id, $user_id);
     $stmt->execute();
     $stmt->close();
-    header("Location: /TrackSmart/budget.php?deleted=1");
+    header("Location: budget.php?deleted=1");
     exit;
 }
 
@@ -95,7 +94,8 @@ $total_remaining = $total_budget - $total_spent;
 <title>Budgets • TrackSmart</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Budgets • TrackSmart</title>
-<link rel="stylesheet" href="assets/css/style.css?v=30">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/budget.css">
 
 </head>
 <body>
@@ -217,7 +217,7 @@ function editBudget(category, limit, id){
 
 function deleteBudget(id){
     if(confirm('Are you sure you want to delete this budget?')){
-        window.location = '/TrackSmart/budget.php?delete=' + id;
+        window.location = 'budget.php?delete=' + id;
     }
 }
 
