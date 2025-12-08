@@ -29,35 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $note = "<p class='msg error'>Email not found!</p>";
     }
 }
-// sends reset link
-// if ($_SERVER["REQUEST_METHOD"] == "POST") {
-//     $email = $_POST["email"];
-
-//     // Check if email exists
-//     $check = $conn->prepare("SELECT id FROM users WHERE email=?");
-//     $check->bind_param("s", $email);
-//     $check->execute();
-//     $check->store_result();
-
-//     if ($check->num_rows > 0) {
-//         // Generate token
-//         $token = bin2hex(random_bytes(40));
-//         $expires = time() + 1800; // 30 minutes valid
-
-//         // Save token to DB
-//         $stmt = $conn->prepare("UPDATE users SET reset_token=?, token_expire=? WHERE email=?");
-//         $stmt->bind_param("sis", $token, $expires, $email);
-//         $stmt->execute();
-
-//         // Send email (use your domain)
-//         $resetLink = "http://yourdomain.com/reset_password.php?token=$token";
-//         mail($email, "Password Reset", "Reset your password here: $resetLink");
-
-//         $note = "<p class='msg success'>Reset link has been sent to your email!</p>";
-//     } else {
-//         $note = "<p class='msg error'>Email not found!</p>";
-//     }
-// }
 ?>
 
 <!doctype html>
@@ -69,7 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <link rel="stylesheet" href="assets/css/style.css?v=14">
 </head>
 <body class="auth-page">
-  <form class="auth-card" method="post" autocomplete="off">
+   <div class="auth-left fade-in-left">
+  <form class="auth-card" method="post" autocomplete="on">
     <h2>Forgot Password</h2>
     <?= $note ?>
 
@@ -78,11 +50,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <button type="submit">Send OTP</button>
 
-    <!-- <label>Email</label>
-    <input type="email" name="email" required placeholder="Enter your email">
-
-    <button type="submit">Send Reset Link</button> -->
-
     <div class="small"><a href="login.php">Back to Login</a></div>
+  </div>
   </form>
+
+  <!-- RIGHT SIDE -->
+    <div class="auth-right fade-in-right">
+        <img src="assets/images/logo.png">
+
+        <h1>Manage Your Finances with Ease</h1>
+        <p>
+            Track expenses, set budgets, and achieve your financial goals with TrackSmart.
+        </p>
+
+        <div class="feature-tag">📊 Real-time Analytics</div>
+        <div class="feature-tag">💰 Budget Tracking</div>
+        <div class="feature-tag">📑 Financial Reports</div>
+        <div class="feature-tag">🎯 Savings Goals</div>
+    </div>
 </body>
+</html>
