@@ -58,30 +58,51 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 
 <body class="auth-page">
-  <form class="auth-card" method="post" autocomplete="off">
-    <h2>Login</h2>
-    <?= $note ?>
+   <!-- LEFT SIDE -->
+    <div class="auth-left fade-in-left">
+        <form class="auth-card" method="post" autocomplete="on">
 
-    <label>Email</label>
-    <input type="email" name="email" required>
+            <h2>Login</h2>
+            <?= $note ?>
 
-    <label>Password</label>
-    <input type="password" name="password" id="myPasswordInput" required>
+            <label>Email Address</label>
+            <input type="email" name="email" required>
 
-    <div class="show-password">
-    <input type="checkbox" id="show-password" onclick="togglePasswordVisibility()">
-    <label for="showpass">Show Password</label>
+            <label>Password</label>
+            <input type="password" name="password" id="myPasswordInput" required>
+
+            <div class="show-password">
+                <input type="checkbox" onclick="togglePasswordVisibility()">
+                <label>Show Password</label>
+            </div>
+
+            <button type="submit">Login</button>
+
+            <!-- Google Login Button -->
+            <button type="button" class="google-login">
+                <img src="assets/img/google-icon.png" width="18">
+                Continue with Google
+            </button>
+
+            <div class="small">No account? <a href="register.php">Register</a></div>
+            <div class="small">Forgot Password? <a href="forgot_password.php">Click Here</a></div>
+
+        </form>
     </div>
-    
-    <!-- <label class="show-password">
-    <input type="checkbox" id="show-password" onclick="togglePasswordVisibility()"> 
-    <span>Show Password</span>
-    </label> -->
-    
-    <button type="submit">Login</button>
 
-    <div class="small">No account? <a href="register.php">Register</a></div>
-    <div class="small">Forgot Password? <a href="forgot_password.php">Click Here</a></div>
-  </form>
+    <!-- RIGHT SIDE -->
+    <div class="auth-right fade-in-right">
+        <img src="assets/images/logo.png">
+
+        <h1>Manage Your Finances with Ease</h1>
+        <p>
+            Track expenses, set budgets, and achieve your financial goals with TrackSmart.
+        </p>
+
+        <div class="feature-tag">📊 Real-time Analytics</div>
+        <div class="feature-tag">💰 Budget Tracking</div>
+        <div class="feature-tag">📑 Financial Reports</div>
+        <div class="feature-tag">🎯 Savings Goals</div>
+    </div>
 </body>
 </html>
