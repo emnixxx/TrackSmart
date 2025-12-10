@@ -15,13 +15,16 @@ $user_id = $_SESSION['user_id'];
 ======================================================== */
 if (isset($_GET['delete'])) {
     $delete_id = intval($_GET['delete']);
-    $conn->query("DELETE FROM transactions WHERE id = $delete_id AND user_id = $user_id");
+    $stmt = $conn->prepare("DELETE FROM transactions WHERE id=? AND user_id=?");
+    $stmt->bind_param("ii", $delete_id, $user_id);
+    $stmt->execute();
+    $stmt->close();
     header("Location: transactions.php?deleted=1");
     exit;
 }
 
 /* ========================================================
-   SAVE NEW TRANSACTION
+   SAVE NEW TRANSACTION — FIXED
 ======================================================== */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) {
 
@@ -33,25 +36,35 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['save_transaction'])) 
     $date = $_POST['date'];
     $notes = $_POST['notes'] ?? "";
 
-    $category_id = $type === "expense" ? $expense_category_id : $income_category_id;
+    // Correct category_id
+    $category_id = ($type === "expense") ? $expense_category_id : $income_category_id;
 
     $stmt = $conn->prepare("
         INSERT INTO transactions (user_id, type, description, amount, category_id, date, notes)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ");
+
     $stmt->bind_param("issdiss",
-        $user_id, $type, $description, $amount, $category_id, $date, $notes
+        $user_id,
+        $type,
+        $description,
+        $amount,
+        $category_id,
+        $date,
+        $notes
     );
 
-    $stmt->execute();
-    $stmt->close();
+    if (!$stmt->execute()) {
+        die("<p style='color:red;'>Insert Error: " . $stmt->error . "</p>");
+    }
 
+    $stmt->close();
     header("Location: transactions.php?added=1");
     exit;
 }
 
 /* ========================================================
-   UPDATE TRANSACTION
+   UPDATE TRANSACTION — FIXED
 ======================================================== */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) {
 
@@ -64,21 +77,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) 
     $expense_category_id = $_POST['expense_category_id'] ?? null;
     $notes = $_POST['notes'];
 
-    $category_id = $type === "expense" ? $expense_category_id : $income_category_id;
+    // Fix category_id
+    $category_id = ($type === "expense") ? $expense_category_id : $income_category_id;
 
     $stmt = $conn->prepare("
-        UPDATE transactions 
-        SET date=?, type=?, description=?, amount=?, category_id=?, notes=? 
+        UPDATE transactions
+        SET date=?, type=?, description=?, amount=?, category_id=?, notes=?
         WHERE id=? AND user_id=?
     ");
 
     $stmt->bind_param("sssdisii",
-        $date, $type, $description, $amount, $category_id, $notes, $id, $user_id
+        $date,
+        $type,
+        $description,
+        $amount,
+        $category_id,
+        $notes,
+        $id,
+        $user_id
     );
 
-    $stmt->execute();
-    $stmt->close();
+    if (!$stmt->execute()) {
+        die("<p style='color:red;'>Update Error: " . $stmt->error . "</p>");
+    }
 
+    $stmt->close();
     header("Location: transactions.php?updated=1");
     exit;
 }
@@ -87,54 +110,46 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_transaction'])) 
    FETCH TRANSACTIONS
 ======================================================== */
 $transactions = $conn->query("
-    SELECT t.*, c.category_name, c.hex_color 
-    FROM transactions t 
+    SELECT t.*, c.category_name, c.hex_color
+    FROM transactions t
     LEFT JOIN categories c ON t.category_id = c.id
     WHERE t.user_id = $user_id
-    ORDER BY date DESC
+    ORDER BY t.date DESC
 ");
 
-/* ==========================================
+/* ========================================================
    FETCH CATEGORIES
-========================================== */
-$incomeCategoryQuery = $conn->query("
-    SELECT * FROM categories WHERE type='income'
-");
+======================================================== */
 $incomeCategories = [];
-while ($row = $incomeCategoryQuery->fetch_assoc()) {
-    $incomeCategories[] = [$row['id'], $row['category_name']];
-}
+$res = $conn->query("SELECT * FROM categories WHERE type='income'");
+while ($r = $res->fetch_assoc()) $incomeCategories[] = $r;
 
-$expenseCategoryQuery = $conn->query("
-    SELECT * FROM categories WHERE type='expense'
-");
 $expenseCategories = [];
-while ($row = $expenseCategoryQuery->fetch_assoc()) {
-    $expenseCategories[] = [$row['id'], $row['category_name']];
-}
+$res = $conn->query("SELECT * FROM categories WHERE type='expense'");
+while ($r = $res->fetch_assoc()) $expenseCategories[] = $r;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
     <title>Transactions • TrackSmart</title>
-    <link rel="stylesheet" href="assets/css/style.css?v=21" />
+    <link rel="stylesheet" href="assets/css/style.css?v=25">
 </head>
 <body>
+
 <?php include 'sidebar.php'; ?>
+
 <div class="main-content">
 <div class="transactions-wrapper">
 
     <div class="transactions-header">
-        <div class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('active')">☰</div>
         <h1>Transactions</h1>
         <p class="subtext">Welcome back!</p>
     </div>
 
     <div class="transaction-topbar">
         <button class="add-btn" onclick="openModal()">+ Add Transaction</button>
-        <a href="budget.php" class="add-btn" style="margin-left:10px;">View Budget</a>
     </div>
 
     <div class="transaction-card">
@@ -150,29 +165,32 @@ while ($row = $expenseCategoryQuery->fetch_assoc()) {
             </thead>
             <tbody>
             <?php if ($transactions->num_rows == 0): ?>
-                <tr>
-                    <td colspan="5" class="empty">No transactions yet.</td>
-                </tr>
+                <tr><td colspan="5" class="empty">No transactions yet.</td></tr>
             <?php else: ?>
                 <?php while ($t = $transactions->fetch_assoc()): ?>
                 <tr>
                     <td><?= $t['date'] ?></td>
                     <td><?= $t['description'] ?></td>
-                    <td><span style="background: <?= $t['hex_color'] ?>;" class="tag"><?= $t['category_name'] ?></span></td>
-                    <td class="<?= $t['type'] === 'income' ? 'amount income' : 'amount expense' ?>">
+                    <td>
+                        <span style="background: <?= $t['hex_color'] ?>;" class="tag">
+                            <?= $t['category_name'] ?>
+                        </span>
+                    </td>
+                    <td class="<?= $t['type'] == 'income' ? 'amount income' : 'amount expense' ?>">
                         ₱<?= number_format($t['amount'], 2) ?>
                     </td>
                     <td class="actions">
-                        <button class="edit-btn" 
+                        <button class="edit-btn"
                             onclick="openEditModal(
                                 '<?= $t['id'] ?>',
                                 '<?= $t['date'] ?>',
                                 '<?= $t['type'] ?>',
-                                '<?= htmlspecialchars($t['description']) ?>',
-                                '<?= htmlspecialchars($t['category_id']) ?>',
+                                `<?= htmlspecialchars($t['description']) ?>`,
+                                '<?= $t['category_id'] ?>',
                                 '<?= $t['amount'] ?>',
                                 `<?= htmlspecialchars($t['notes']) ?>`
                             )">✏️</button>
+
                         <button class="delete-btn" onclick="deleteTransaction(<?= $t['id'] ?>)">🗑</button>
                     </td>
                 </tr>
@@ -180,13 +198,180 @@ while ($row = $expenseCategoryQuery->fetch_assoc()) {
             <?php endif; ?>
             </tbody>
         </table>
-        <p class="page-info">Showing <?= $transactions->num_rows ?> transactions</p>
     </div>
 
 </div>
 </div>
 
-<!-- MODALS & JS SAME AS YOUR ORIGINAL TRANSACTIONS CODE -->
+<!-- ADD MODAL -->
+<div id="transactionModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Add Transaction</h2>
+        <span class="close-btn" onclick="closeModal()">✕</span>
+
+        <form method="POST">
+            <input type="hidden" name="save_transaction" value="1">
+
+            <label>Date</label>
+            <input type="date" name="date" class="input" required>
+
+            <label>Type</label>
+            <div class="type-switch">
+                <button type="button" class="type-btn active" id="expenseBtn" onclick="setType('expense')">Expense</button>
+                <button type="button" class="type-btn" id="incomeBtn" onclick="setType('income')">Income</button>
+            </div>
+            <input type="hidden" name="type" id="typeField" value="expense">
+
+            <label>Description</label>
+            <input type="text" name="description" class="input" required>
+
+            <div id="expenseDropdown">
+                <label>Expense Category</label>
+                <select name="expense_category_id" class="input">
+                    <?php foreach ($expenseCategories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>"><?= $cat['category_name'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div id="incomeDropdown" style="display:none;">
+                <label>Income Category</label>
+                <select name="income_category_id" class="input">
+                    <?php foreach ($incomeCategories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>"><?= $cat['category_name'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <label>Amount</label>
+            <input type="number" name="amount" step="0.01" class="input" required>
+
+            <label>Notes</label>
+            <textarea name="notes" class="input"></textarea>
+
+            <button class="save-btn">Save Transaction</button>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>Edit Transaction</h2>
+        <span class="close-btn" onclick="closeEditModal()">✕</span>
+
+        <form method="POST">
+            <input type="hidden" name="edit_transaction" value="1">
+            <input type="hidden" id="edit_id" name="id">
+
+            <label>Date</label>
+            <input type="date" id="edit_date" name="date" class="input" required>
+
+            <label>Type</label>
+            <div class="type-switch">
+                <button type="button" class="type-btn" id="edit_expenseBtn" onclick="editSetType('expense')">Expense</button>
+                <button type="button" class="type-btn" id="edit_incomeBtn" onclick="editSetType('income')">Income</button>
+            </div>
+            <input type="hidden" name="type" id="edit_typeField">
+
+            <label>Description</label>
+            <input type="text" id="edit_description" name="description" class="input" required>
+
+            <div id="edit_expenseDropdown">
+                <label>Expense Category</label>
+                <select id="edit_expense_category_id" name="expense_category_id" class="input">
+                    <?php foreach ($expenseCategories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>"><?= $cat['category_name'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div id="edit_incomeDropdown" style="display:none;">
+                <label>Income Category</label>
+                <select id="edit_income_category_id" name="income_category_id" class="input">
+                    <?php foreach ($incomeCategories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>"><?= $cat['category_name'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <label>Amount</label>
+            <input type="number" id="edit_amount" name="amount" step="0.01" class="input" required>
+
+            <label>Notes</label>
+            <textarea id="edit_notes" name="notes" class="input"></textarea>
+
+            <button class="save-btn">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal() { document.getElementById("transactionModal").style.display = "flex"; }
+function closeModal() { document.getElementById("transactionModal").style.display = "none"; }
+
+function openEditModal(id, date, type, desc, category_id, amount, notes) {
+    document.getElementById("edit_id").value = id;
+    document.getElementById("edit_date").value = date;
+    document.getElementById("edit_description").value = desc;
+    document.getElementById("edit_amount").value = amount;
+    document.getElementById("edit_notes").value = notes;
+
+    editSetType(type);
+
+    if (type === "expense")
+        document.getElementById("edit_expense_category_id").value = category_id;
+    else
+        document.getElementById("edit_income_category_id").value = category_id;
+
+    document.getElementById("editModal").style.display = "flex";
+}
+
+function closeEditModal() {
+    document.getElementById("editModal").style.display = "none";
+}
+
+function deleteTransaction(id) {
+    if (confirm("Delete this transaction?"))
+        window.location = "transactions.php?delete=" + id;
+}
+
+function setType(type) {
+    document.getElementById("typeField").value = type;
+
+    expenseBtn.classList.remove("active");
+    incomeBtn.classList.remove("active");
+
+    if (type === "expense") {
+        expenseBtn.classList.add("active");
+        expenseDropdown.style.display = "";
+        incomeDropdown.style.display = "none";
+    } else {
+        incomeBtn.classList.add("active");
+        expenseDropdown.style.display = "none";
+        incomeDropdown.style.display = "";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => setType("expense"));
+
+function editSetType(type) {
+    document.getElementById("edit_typeField").value = type;
+
+    edit_expenseBtn.classList.remove("active");
+    edit_incomeBtn.classList.remove("active");
+
+    if (type === "expense") {
+        edit_expenseBtn.classList.add("active");
+        edit_expenseDropdown.style.display = "";
+        edit_incomeDropdown.style.display = "none";
+    } else {
+        edit_incomeBtn.classList.add("active");
+        edit_expenseDropdown.style.display = "none";
+        edit_incomeDropdown.style.display = "";
+    }
+}
+</script>
 
 </body>
 </html>
