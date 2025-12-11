@@ -34,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body class="auth-page">
+  <div class="auth-left fade-in-left">
   <form class="auth-card" method="post" autocomplete="off">
     <h2>Verify OTP</h2>
     <?= $note ?>
@@ -46,4 +47,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="small"><a href="forgot_password.php">Resend OTP</a></div>
     <div class="small"><a href="login.php">Back to Login</a></div>
   </form>
+  </div>
+
+  <!-- RIGHT SIDE -->
+    <div class="auth-right fade-in-right">
+        <img src="assets/images/logo.png">
+
+        <h1>Manage Your Finances with Ease</h1>
+        <p>
+            Track expenses, set budgets, and achieve your financial goals with TrackSmart.
+        </p>
+
+        <div class="feature-tag">📊 Real-time Analytics</div>
+        <div class="feature-tag">💰 Budget Tracking</div>
+        <div class="feature-tag">📑 Financial Reports</div>
+        <div class="feature-tag">🎯 Savings Goals</div>
+    </div>
 </body>
+</html>

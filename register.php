@@ -48,7 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <link rel="stylesheet" href="assets/css/style.css?v=14">
 </head>
 <body class="auth-page">
+  <div class="auth-left fade-in-left">
   <form class="auth-card" method="post" autocomplete="off">
+
     <h2>Create Account</h2>
     <?= $note ?>
 
@@ -68,5 +70,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <div class="small">Already have an account? <a href="login.php">Login</a></div>
   </form>
+  </div>
+
+  <!-- RIGHT SIDE -->
+    <div class="auth-right fade-in-right">
+        <img src="assets/images/logo.png">
+
+        <h1>Manage Your Finances with Ease</h1>
+        <p>
+            Track expenses, set budgets, and achieve your financial goals with TrackSmart.
+        </p>
+
+        <div class="feature-tag">📊 Real-time Analytics</div>
+        <div class="feature-tag">💰 Budget Tracking</div>
+        <div class="feature-tag">📑 Financial Reports</div>
+        <div class="feature-tag">🎯 Savings Goals</div>
+    </div>
 </body>
 </html>
