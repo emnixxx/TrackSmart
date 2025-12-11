@@ -80,11 +80,11 @@ while ($row = $catResult->fetch_assoc()) {
 }
 
 // =========================
-// INCOME vs EXPENSE
+// MONTHLY INCOME vs EXPENSE (Current Month)
 // =========================
 $incomeSeries = 0;
 $expenseSeries = 0;
-$barResult = $conn->query("
+$monthResult = $conn->query("
     SELECT 
         SUM(CASE WHEN type = 'income'  THEN amount ELSE 0 END) AS income_total,
         SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense_total
@@ -93,13 +93,13 @@ $barResult = $conn->query("
       AND $date_filter
 ");
 
-if ($row = $barResult->fetch_assoc()) {
+if ($row = $monthResult->fetch_assoc()) {
     $incomeSeries  = (float) $row['income_total']  ?? 0;
     $expenseSeries = (float) $row['expense_total'] ?? 0;
 }
 
 $label = date('M d', strtotime($start_date)) . ' - ' . date('M d', strtotime($end_date));
-$dateLabel = [$label];
+$monthLabel = [$label];
 $incomeData = [$incomeSeries];
 $expenseData = [$expenseSeries];
 
@@ -120,7 +120,7 @@ $dataResult = $conn->query("
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reports • TrackSmart</title>
+    <title>Monthly Reports • TrackSmart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/css/style.css?v=30">
     <link rel="stylesheet" href="assets/css/reports.css?v=30">
@@ -156,6 +156,7 @@ $dataResult = $conn->query("
             <div class="export-buttons">
                 <button onclick="window.location.href='export_data.php?start_date=<?= htmlspecialchars($start_date) ?>&end_date=<?= htmlspecialchars($end_date) ?>'" class="add-btn">Export as CSV</button>
                 <button onclick="exportReportToPDF()" class="add-btn">Export as PDF</button>
+                <button onclick="window.open('generate_pdf.php?start_date=<?= htmlspecialchars($start_date) ?>&end_date=<?= htmlspecialchars($end_date) ?>', '_blank')" class="add-btn">Download Statement</button>
             </div>
         </div>
 
@@ -236,7 +237,7 @@ $dataResult = $conn->query("
 // -------------------------
 const pieLabels   = <?= json_encode($catLabels) ?>;
 const pieData     = <?= json_encode($catTotals) ?>;
-const dateLabel = <?= json_encode($dateLabel) ?>;
+const monthLabel = <?= json_encode($monthLabel) ?>;
 const incomeData  = <?= json_encode($incomeData) ?>;
 const expenseData = <?= json_encode($expenseData) ?>;
 
@@ -265,7 +266,7 @@ const ctxBar = document.getElementById('incomeExpenseBar').getContext('2d');
 new Chart(ctxBar, {
     type: 'bar',
     data: {
-        labels: dateLabel,
+        labels: monthLabel,
         datasets: [
             {
                 label: 'Income',
@@ -313,7 +314,7 @@ function exportReportToPDF() {
             heightLeft -= pageHeight;
         }
 
-        doc.save('Financial_Report_<?= date('Y-m') ?>.pdf');
+        doc.save('Monthly_Financial_Report_<?= date('Y-m') ?>.pdf');
     }).catch(err => {
         console.error("PDF generation failed:", err);
         alert("Failed to generate PDF. Check console for details.");
